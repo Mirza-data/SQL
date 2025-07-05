@@ -1,0 +1,129 @@
+| Type             | Example questions                                                          |
+| ---------------- | -------------------------------------------------------------------------- |
+| Summary stats    | What’s the avg price / rating by category? How many products per category? |
+| Stock analysis   | What is total stock value? Which items are low in stock?                   |
+| Rating insights  | What are top-rated items? Any poorly rated stock we should clear?          |
+| Pricing insights | What’s the price distribution? Are higher-priced items better rated?       |
+| Inventory health | Do we have dead stock? Where is most of our stock value tied up?           |
+
+
+
+CREATE TABLE superstore (
+    item_id INTEGER PRIMARY KEY,
+    item_name TEXT,
+    category TEXT,
+    price DECIMAL(10, 2),
+    stock_quantity INTEGER,
+    average_rating DECIMAL(3, 2)
+);
+
+INSERT INTO superstore (item_id, item_name, category, price, stock_quantity, average_rating)
+VALUES
+    (1, 'Stainless Steel Cookware Set', 'Kitchen Supplies', 89.99, 50, 4.6),
+    (2, 'Memory Foam Mattress', 'Furnishings', 499.99, 30, 4.8),
+    (3, 'Smart LED TV', 'Electronics', 549.00, 20, 4.5),
+    (4, 'Robot Vacuum Cleaner', 'Appliances', 199.50, 40, 4.3),
+    (5, 'Wireless Bluetooth Speaker', 'Electronics', 39.99, 60, 4.2),
+    (6, 'Non-Stick Baking Set', 'Kitchen Supplies', 29.95, 80, 4.4),
+    (7, 'Cotton Bedding Set', 'Furnishings', 89.00, 25, 4.7),
+    (8, 'Smart Home Security Camera', 'Electronics', 79.95, 15, 4.1),
+    (9, 'Air Purifier', 'Appliances', 129.50, 35, 4.6),
+    (10, 'Premium Coffee Maker', 'Kitchen Supplies', 79.99, 50, 4.9),
+    (11, 'Ergonomic Office Chair', 'Furnishings', 189.00, 20, 4.5),
+    (12, 'Wireless Earbuds', 'Electronics', 49.99, 75, 4.3),
+    (13, 'Slow Cooker', 'Appliances', 49.95, 30, 4.7),
+    (14, 'Cutlery Set', 'Kitchen Supplies', 34.50, 40, 4.4),
+    (15, 'Cozy Throw Blanket', 'Furnishings', 24.99, 100, 4.2);
+
+
+
+-- How many items in each category
+select category as Category, count(*) as Item_Count
+from superstore
+group by category;
+
+-- Average price by category
+select category, avg(price) as Avg_Price
+from superstore
+group by category;
+
+-- Most expensive price
+select * from superstore
+order by price DESC
+limit 1;
+
+
+select * from superstore
+order by price Desc
+limit 1;
+
+--Items with stock below threshold (low stock alert)
+select item_id, item_name, stock_quantity
+from superstore
+where stock_quantity < 10;
+
+--How many air purifiers are in stock
+
+select item_name, category, stock_quantity
+from superstore
+where category = 'Appliances';
+
+SELECT sum(stock_quantity) AS total_air_purifier_stock
+FROM superstore
+WHERE LOWER(item_name) LIKE '%air purifier%';
+
+--Average rating per category
+select category, AVG(average_rating) as avg_rating
+from superstore
+group by category;
+
+-- Top-rated items (e.g. rating >= 4.5)
+select item_name, average_rating
+from superstore
+where average_rating >= 4.5
+order by average_rating desc;
+
+--Price distribution (price ranges)
+
+SELECT item_name,
+  CASE 
+    WHEN price < 50 THEN 'Under 50'
+    WHEN price BETWEEN 50 AND 100 THEN '50-100'
+    ELSE 'Over 100'
+  END AS price_range,
+  COUNT(*) AS item_count
+FROM superstore
+GROUP BY price_range;
+
+--Stock value per category (total stock x price)
+SELECT category, SUM(price * stock_quantity) AS stock_value
+FROM superstore
+GROUP BY category;
+
+
+--Correlation between price and rating
+--(e.g. do expensive items tend to get higher ratings?)
+--You’d export this data and plot price vs. average_rating using ---Power BI, Excel, or Python.
+--Identify dead stock (items in stock but low rating or no rating)
+
+SELECT * from superstore
+where average_rating <= 4.2 or average_rating is null;
+
+--Top 5 most expensive items
+select item_name, price 
+from superstore
+order by price desc
+limit 5;
+
+
+--Top 3 highest rated item
+select item_name, average_rating
+from superstore
+order by average_rating desc
+limit 3;
+
+
+--Rank items within category by price:
+SELECT item_name, category, price,
+  RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank
+FROM superstore;
