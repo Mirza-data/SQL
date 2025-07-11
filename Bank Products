@@ -1,0 +1,218 @@
+CREATE TABLE bank_products (
+    product_id INTEGER PRIMARY KEY,
+    product_name TEXT,
+    product_type TEXT,
+    interest_rate DECIMAL(5, 2),
+    monthly_fee DECIMAL(6, 2),
+    minimum_balance DECIMAL(10, 2),
+    description TEXT
+);
+
+INSERT INTO bank_products (product_id, product_name, product_type, interest_rate, monthly_fee, minimum_balance, description)
+VALUES
+(1, 'Basic Checking', 'Checking', 0.00, 5.00, 0.00, 'No minimum balance required.'),
+(2, 'Premium Checking', 'Checking', 0.00, 10.00, 1000.00, 'Offers additional benefits.'),
+(3, 'Business Checking', 'Checking', 0.00, 15.00, 5000.00, 'Designed for business needs.'),
+(4, 'Student Checking', 'Checking', 0.00, 3.00, 0.00, 'No minimum balance. Low monthly fee for students.'),
+(5, 'Basic Savings', 'Savings', 0.20, 0.00, 100.00, 'Offers competitive interest rates.'),
+(6, 'High Yield Savings', 'Savings', 1.00, 0.00, 5000.00, 'High interest rates for higher balances.'),
+(7, 'Student Savings', 'Savings', 0.20, 0.00, 0.00, 'No minimum balance. Low interest rate for students.'),
+(8, 'Senior Savings', 'Savings', 0.50, 0.00, 100.00, 'Designed for seniors.'),
+(9, 'Youth Savings', 'Savings', 0.30, 0.00, 10.00, 'Low minimum balance and interest rate suitable for young account holders.'),
+(10, 'Auto Loan', 'Loan', 4.00, 0.00, 0.00, 'Financing for new or used cars.'),
+(11, 'Mortgage', 'Loan', 3.50, 0.00, 0.00, 'Home mortgage loans.'),
+(12, 'Cash Back Rewards Card', 'Credit Card', 16.00, 5.00, 0.00, 'Offers cash back on purchases.'),
+(13, 'Platinum Credit Card', 'Credit Card', 18.00, 0.00, 0.00, 'Rewards and cash back.'),
+(14, 'Gold Credit Card', 'Credit Card', 20.00, 10.00, 0.00, 'Higher credit limits.'),
+(15, 'Student Credit Card', 'Credit Card', 22.00, 5.00, 0.00, 'Designed for students.')
+;
+
+select product_name, product_type
+from bank_products
+where product_type IN ('Checking', 'Savings');
+
+select product_name, product_type
+from bank_products
+where product_type not in ('Checking', 'Savings');
+
+select product_name, interest_rate
+from bank_products
+where product_name like '%Youth%';
+
+SELECT product_name, description
+FROM bank_products
+WHERE product_name IN ('Premium Checking','High Yield Savings','Platinum Credit Card','Gold Credit Card');
+
+
+select product_name, description
+from bank_products
+where product_name like 'business%';
+
+SELECT product_name
+, description
+FROM bank_products
+WHERE product_name LIKE '%reward%'
+OR description LIKE '%reward%'
+;
+
+--How many products are available for each product type?
+select product_type, count(*) as 'product Count'
+from bank_products
+group by product_type;
+
+--What is the average interest rate for each product type?
+select product_type, round(avg(interest_rate),2) as 'Average interest rate'
+from bank_products
+group by product_type;
+
+--What is the average monthly fee for each product type?
+
+select product_type, round(avg(monthly_fee),2) as 'Average monthly fee'
+from bank_products
+group by product_type;
+
+
+--Which products have the highest interest rates?
+Select product_name,interest_rate
+from bank_products
+order by interest_rate desc
+limit 1;
+
+--Which products have interest rates above a certain threshold (e.g. 2%)?
+SELECT product_name, product_type, interest_rate
+FROM bank_products
+WHERE interest_rate >= 2
+ORDER BY interest_rate DESC;
+
+--Which products have high interest rates but no monthly fee
+SELECT product_name, interest_rate
+FROM bank_products
+WHERE interest_rate >= 10 and monthly_fee =0
+ORDER BY interest_rate DESC;
+
+--Which products have no monthly fee?
+select product_name, monthly_fee
+from bank_products
+where monthly_fee = 0;
+
+--What is the average monthly fee for all products?
+SELECT AVG(monthly_fee) AS average_monthly_fee
+FROM bank_products;
+
+
+--Which products require the highest minimum balance?
+select product_name, minimum_balance
+from bank_products
+where minimum_balance = (
+select max(minimum_balance)
+from bank_products);
+
+--How many products require a minimum balance above a certain amount (e.g. $1000)?
+SELECT product_name,COUNT(*) AS product_count
+FROM bank_products
+WHERE minimum_balance > 1000;
+
+--Which products require no minimum balance?
+SELECT product_name
+FROM bank_products
+WHERE minimum_balance = 0
+ORDER BY product_name;
+
+--Which products charge high monthly fees but give low interest rates?
+SELECT product_name, product_type, monthly_fee, interest_rate
+FROM bank_products
+WHERE monthly_fee >= 15 AND interest_rate <= 3
+ORDER BY monthly_fee DESC, interest_rate ASC;
+
+select  product_name, 
+  monthly_fee, 
+  interest_rate,
+  case
+  when monthly_fee >=15 and interest_rate <=3 then 'Unattractive'
+  else 'Fair'
+  end as product_rating
+ from bank_products
+ order by product_rating desc, interest_rate asc;
+ 
+ --List all product names and their descriptions for a given product type (e.g. "Savings")
+
+select product_name, description
+from bank_products
+where product_type = "Savings";
+
+--What are the distinct product types offered by the bank?
+SELECT DISTINCT PRODUCT_TYPE
+FROM bank_products
+ORDER BY PRODUCT_TYPE;
+
+--What are the top 3 products by interest rate?
+select product_name, interest_rate
+from bank_products
+order by interest_rate desc
+limit 3;
+
+--What are the top 3 products with the lowest minimum balance requirement?
+select product_name, minimum_balance
+from bank_products
+where minimum_balance >0
+order by minimum_balance asc
+limit 3;
+
+
+--What is the ratio of interest rate to monthly fee for each product?
+select product_name, product_type, 
+
+
+case
+when monthly_fee = 0 THEN NULL
+  ELSE interest_rate / monthly_fee
+END as 'rate_fee_ratio'
+from bank_products;
+
+--Which products have an interest rate (%) greater than the monthly fee ($)?
+
+SELECT product_name, interest_rate, monthly_fee
+FROM bank_products
+WHERE interest_rate > monthly_fee;
+
+SELECT product_name, interest_rate, monthly_fee, ROUND(interest_rate / monthly_fee, 2) AS rate_fee_ratio
+FROM bank_products
+WHERE monthly_fee > 0 AND interest_rate > monthly_fee
+ORDER BY rate_fee_ratio DESC;
+
+--What is the cost (monthly fee) a customer pays per 1% of interest earned?
+
+SELECT 
+  product_name, 
+  product_type, 
+  ROUND(monthly_fee / interest_rate, 2) AS monthly_fee_per_1_interest
+FROM bank_products
+WHERE interest_rate > 0
+ORDER BY interest_rate DESC;
+
+--For each product, calculate a simple ROI-style value:
+select product_name,product_type, 
+round((interest_rate * 12) / nullif(monthly_fee * 12,0),2) as 'ROI'
+from bank_products;
+
+SELECT product_name, interest_rate, monthly_fee, minimum_balance
+FROM bank_products
+WHERE interest_rate < 5 AND monthly_fee > 5 AND minimum_balance > 5
+ORDER BY monthly_fee DESC;
+
+SELECT 
+  product_name,
+  interest_rate,
+  monthly_fee,
+  minimum_balance,
+  CASE
+    WHEN interest_rate < 5 AND monthly_fee > 5 AND minimum_balance > 5 THEN 'Unattractive'
+    ELSE 'Neutral'
+  END AS product_rating
+FROM bank_products;
+
+--What is the average interest-to-fee ratio per product type?
+
+select product_name, product_type, round(avg(interest_rate/ monthly_fee),2)
+from bank_products
+group by product_type;
