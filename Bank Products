@@ -1,3 +1,35 @@
+ 1. Product Types Offered
+The bank offers various types of products like Savings, Checking, Credit, and Loans.
+
+📊 2. Interest Rates vs. Monthly Fees
+Some products provide a high interest rate with low or zero monthly fees, making them very attractive to customers.
+
+Others charge high monthly fees but offer very low interest, indicating poor value for customers.
+
+🔍 3. Minimum Balance Requirements
+A few products require zero minimum balance, making them suitable for cost-sensitive customers.
+
+Others demand very high minimum balances, potentially limiting accessibility.
+
+💰 4. Interest-to-Fee Ratio
+You calculated ratios like interest_rate / monthly_fee to assess product value.
+
+This helped highlight products that offer better returns relative to their cost.
+
+🧮 5. ROI-Like Scoring
+A custom formula like
+(interest_rate / (monthly_fee + 1)) - (minimum_balance / 1000)
+was used to score each product’s overall benefit.
+
+Products with high interest, low fees, and low balance requirements scored best.
+
+🧠 6. Performance Labels
+Products were grouped as “Attractive,” “Fair,” or “Unattractive” based on their fees, rates, and balance requirements using CASE logic.
+
+📌 Final Takeaway:
+This analysis helped simulate how banks and customers might evaluate financial products — balancing earnings (interest) vs cost (fees & requirements). Products with high value-to-cost ratios can be marketed more aggressively, while low-performing ones may need redesign or re-pricing.
+
+
 CREATE TABLE bank_products (
     product_id INTEGER PRIMARY KEY,
     product_name TEXT,
