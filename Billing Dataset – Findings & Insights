@@ -1,0 +1,204 @@
+Dataset Overview
+The dataset represents medical billing records, containing the following key fields:
+
+patient_id – unique identifier for each patient
+
+insurance_provider – the patient’s insurance company
+
+procedure_code – medical procedure code
+
+procedure_description – description of the procedure performed
+
+procedure_cost – internal cost of the procedure
+
+procedure_bill – billed amount to the patient/insurance
+
+payment_received – actual payment received
+
+Analysis Performed
+We performed SQL-based analysis to answer common business questions, including:
+
+Total procedures performed per insurance provider
+
+Procedures with highest average billing amount
+
+Procedures billed higher than cost by more than $100
+
+Average payment received per insurance provider
+
+Patients who paid more than 90% of their billed amount
+
+Revenue collected per procedure type
+
+Zero-payment procedures
+
+Top 3 procedures with the highest payment-to-cost ratio
+
+Insurance providers billed more than $5000 in total
+
+Underpaid procedures where payment was lower than cost
+
+Key Findings
+Insurance Providers: Some providers had total billing exceeding $5000, indicating high business volume from those companies.
+
+High Margin Procedures: Certain procedures were billed more than $100 above their cost, representing strong profit margins.
+
+Payment Patterns: Some patients paid over 90% of their billed amount, showing good collection efficiency, while others had zero payments received.
+
+Cost vs. Payment Issues: Several procedures were underpaid (payment received was less than the cost), which may indicate billing inefficiencies or insurance disputes.
+
+Top Ratios: A few procedures had very high payment-to-cost ratios, suggesting priority areas for the hospital to focus on for profitability.
+
+Conclusion
+The dataset helped demonstrate how SQL can be applied to real-world healthcare billing scenarios, identifying revenue drivers, inefficiencies, and payment behaviors.
+Such insights can assist finance teams in improving billing strategies, optimizing revenue collection, and negotiating better terms with insurance providers.
+
+
+
+CREATE TABLE billing (
+    patient_id INTEGER
+  	, insurance_provider TEXT
+    , procedure_code INTEGER
+    , procedure_description TEXT
+    , procedure_cost REAL
+    , procedure_bill REAL
+    , payment_received REAL
+);
+
+
+INSERT INTO billing (patient_id, insurance_provider, procedure_code, procedure_description, procedure_cost, procedure_bill, payment_received)
+VALUES
+    (137845, 'Insurance A', 42213, 'Office Visit', 335.00, 83.75, 35.00)
+  , (137845, 'Insurance A', 80525,	'Complete Blood Count',	225.00,	56.25, 25.00)
+  , (187738, 'Insurance C', 42213, 'Office Visit', 335.00, 50.25, 35.00)
+  , (187738, 'Insurance C', 85706, 'ECG', 425.00, 63.75, 50.00)
+  , (214007, 'Insurance A', 42213, 'Office Visit', 335.00, 83.75, 30.00)
+  , (214007, 'Insurance A', 80048, 'Basic Metabolic Panel', 200.00, 50.00, 0.00)
+  , (214007, 'Insurance A', 80525, 'Complete Blood Count', 225.00, 56.25, 0.00)
+  , (250077, 'Insurance B', 42213, 'Office Visit', 335.00, 117.25, 85.00)
+  , (250077, 'Insurance B', 80525, 'Complete Blood Count', 225.00, 78.75, 0.00)
+  , (281938, 'Insurance B', 80449, 'Glucose Tolerance Test', 150.00, 52.50, 15.00)
+  , (296309, 'Insurance C', 42213, 'Office Visit', 335.00, 50.25, 30.00)
+  , (296309, 'Insurance C', 80525, 'Complete Blood Count', 225.00, 33.75, 25.00)
+  , (301544, 'Insurance C', 80061, 'Lipid Panel', 135.00, 20.25, 20.25)
+  , (390731, 'Insurance B', 42213, 'Office Visit', 335.00, 117.25, 50.00)
+  , (390731, 'Insurance B', 80048, 'Basic Metabolic Panel', 200.00, 70.00, 0.00)
+  , (390731, 'Insurance B', 80449, 'Glucose Tolerance Test', 150.00, 52.50, 0.00)
+    ;
+
+
+select patient_id, procedure_bill - payment_received as payment_remaining 
+from billing;
+
+select patient_id, sum( procedure_bill - payment_received) as payment_remaining 
+from billing
+group by patient_id;
+
+
+select patient_id, sum (procedure_bill - payment_received) as payment_remaining
+from billing
+group by patient_id
+having payment_remaining >150;
+
+--Display the insurance providers and the number of patient bills covered by each provider for lab tests (lab test procedure codes all begin with “80”) 
+
+select insurance_provider,
+ count(procedure_bill) as lab_bills
+ from billing
+ where procedure_code like '80%'
+ group by insurance_provider;
+ 
+ select insurance_provider,
+ count(procedure_bill) as lab_bills
+ from billing
+ where procedure_code like '80%'
+ group by insurance_provider
+ having count(procedure_bill) >3;
+ 
+ --What is the total number of procedures performed per insurance provider?
+ select insurance_provider, count(*) as no_of_count
+ from billing
+ group by insurance_provider;
+ 
+ --Which procedure has the highest average billing amount?
+ select procedure_description as procedure, round(avg(procedure_bill),1) as avg_bill 
+ from billing
+ group by procedure_description
+ order by avg_bill desc
+ limit 1;
+ 
+ 
+ --List all procedures where the bill is greater than the cost by more than $100.
+ select procedure_description, procedure_bill, procedure_cost
+ from billing
+ where procedure_bill - procedure_cost>100;
+ 
+ 
+ --What is the average payment received per insurance provider?
+ 
+ select insurance_provider, avg(payment_received)
+ from billing
+ group by insurance_provider;
+ 
+ --Which patients have paid more than 90% of their billed amount?
+ 
+ select patient_id, round((payment_received/procedure_bill)*100,1) as payment_percent
+ from billing
+ where (payment_received / procedure_bill) > 0.9;
+ 
+
+ --What is the total revenue collected (sum of payment_received) per procedure description?
+ 
+SELECT 
+  procedure_description, 
+  SUM(payment_received) AS total_revenue
+FROM billing
+GROUP BY procedure_description;
+
+--How many procedures had zero payments received?
+
+select 
+	procedure_description,
+    count(*)
+from billing
+where payment_received = 0
+group by procedure_description;
+
+--List the top 3 procedures with the highest payment-to-cost ratio.
+select
+	procedure_description, 
+    payment_received,
+    procedure_cost,
+    round((payment_received/procedure_cost),2) as ratio
+from billing
+where procedure_cost > 0
+order by ratio desc
+limit 3;
+
+
+
+--Find the insurance providers that were billed more than $5000 in total.
+
+Select
+	insurance_provider,
+    sum(procedure_bill) as total_billed
+from billing
+group by insurance_provider
+having sum(procedure_bill) > 5000;
+
+
+--Which procedures have a payment_received less than the procedure_cost (i.e., underpaid)?
+
+Select
+	procedure_description,
+    procedure_cost,
+    payment_received,
+    (procedure_cost - payment_received) as underpaid_amount
+from billing
+where payment_received < procedure_cost;
+    
+
+
+
+
+
